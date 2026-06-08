@@ -11,6 +11,7 @@ import static org.owasp.webgoat.container.assignments.AttackResultBuilder.succes
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.PreparedStatement;
 import java.sql.Statement;
 import org.owasp.webgoat.container.LessonDataSource;
 import org.owasp.webgoat.container.assignments.AssignmentEndpoint;
@@ -45,11 +46,15 @@ public class SqlInjectionLesson2 implements AssignmentEndpoint {
 
   protected AttackResult injectableQuery(String query) {
     try (var connection = dataSource.getConnection()) {
-      Statement statement = connection.createStatement(TYPE_SCROLL_INSENSITIVE, CONCUR_READ_ONLY);
-      ResultSet results = statement.executeQuery(query);
+      String sql = "SELECT * FROM user_data WHERE first_name = ?";
+      PreparedStatement statement = connection.prepareStatement(sql, TYPE_SCROLL_INSENSITIVE, CONCUR_READ_ONLY);
+      statement.setString(1, query);
+      ResultSet results = statement.executeQuery();
       StringBuilder output = new StringBuilder();
 
-      results.first();
+      if (!results.next()) {
+        return failed(this).feedback("sql-injection.2.failed").output("No results found").build();
+      }
 
       if (results.getString("department").equals("Marketing")) {
         output.append("<span class='feedback-positive'>" + query + "</span>");
