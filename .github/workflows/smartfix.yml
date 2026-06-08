@@ -72,10 +72,17 @@ jobs:
           # baseline build, and is fast. SmartFix still compiles each fix. Switch back to
           # '... clean test' if you want test-verified fixes and the suite passes cleanly.
           build_command: './mvnw -B -ntp clean package -Dmaven.test.skip=true'
-          max_open_prs: 5
           base_branch: '${{ github.event.repository.default_branch }}'
           # Verbose logging so the real Maven output shows in the Action log.
           debug_mode: 'true'
+
+          # --- Keep a run inside the Gemini free-tier budget (~20 flash requests/day) ---
+          # Attempt only a couple of fixes per run, and skip writing a per-fix security
+          # test (that roughly halves the LLM calls per fix). Raise these once you have a
+          # paid LLM key. With 2 PRs already open, close/merge them before a fresh run,
+          # since max_open_prs counts currently-open SmartFix PRs.
+          max_open_prs: 2
+          skip_writing_security_test: 'true'
 
           # --- GitHub token (auto-provided) ---
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -95,9 +102,12 @@ jobs:
           # Get a key at https://aistudio.google.com/apikey, add it as the repo secret
           # GEMINI_API_KEY, and use the three lines below.
           use_contrast_llm: 'false'
+          # Google Gemini free tier (flash). Free tier allows ~20 flash requests/day,
+          # so keep max_open_prs low and skip_writing_security_test true (above) to fit.
           gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
-          # gemini-2.5-flash is allowed on the free tier; gemini-2.5-pro is NOT
-          # (free-tier limit is 0 requests). Use a paid key/billing for pro-quality fixes.
           agent_model: 'gemini/gemini-2.5-flash'
+          # Paid alternative for unlimited / better fixes (key as a GitHub secret):
+          # anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # agent_model: 'anthropic/claude-haiku-4-5-20251001'
           #
           # Option C: Anthropic / AWS Bedrock / Azure -- see smartfix/README.md and action.yml.
