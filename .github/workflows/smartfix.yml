@@ -96,6 +96,8 @@ jobs:
           # GEMINI_API_KEY, and use the three lines below.
           use_contrast_llm: 'false'
           gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
-          agent_model: 'gemini/gemini-2.5-pro'
+          # gemini-2.5-flash is allowed on the free tier; gemini-2.5-pro is NOT
+          # (free-tier limit is 0 requests). Use a paid key/billing for pro-quality fixes.
+          agent_model: 'gemini/gemini-2.5-flash'
           #
           # Option C: Anthropic / AWS Bedrock / Azure -- see smartfix/README.md and action.yml.
