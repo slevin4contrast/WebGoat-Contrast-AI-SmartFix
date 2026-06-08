@@ -54,11 +54,20 @@ public class UserService implements UserDetailsService {
   }
 
   private void createLessonsForUser(WebGoatUser webGoatUser) {
-    jdbcTemplate.execute("CREATE SCHEMA \"" + webGoatUser.getUsername() + "\" authorization dba");
+    String sanitizedUsername = sanitizeUsername(webGoatUser.getUsername());
+    jdbcTemplate.execute("CREATE SCHEMA \"" + sanitizedUsername + "\" authorization dba");
     flywayLessons.apply(webGoatUser.getUsername()).migrate();
   }
 
   public List<WebGoatUser> getAllUsers() {
     return userRepository.findAll();
+  }
+
+  private String sanitizeUsername(String username) {
+    if (username == null) {
+      return null;
+    }
+    // Allow only alphanumeric characters and underscores for schema names
+    return username.replaceAll("[^a-zA-Z0-9_]", "");
   }
 }
