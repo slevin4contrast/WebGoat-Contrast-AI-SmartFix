@@ -33,6 +33,10 @@ public class SqlInjectionLesson4 implements AssignmentEndpoint {
     this.dataSource = dataSource;
   }
 
+  private boolean isValidQuery(String query) {
+    return "alter table employees add column phone varchar(20)".equalsIgnoreCase(query.trim());
+  }
+
   @PostMapping("/SqlInjection/attack4")
   @ResponseBody
   public AttackResult completed(@RequestParam String query) {
@@ -40,6 +44,9 @@ public class SqlInjectionLesson4 implements AssignmentEndpoint {
   }
 
   protected AttackResult injectableQuery(String query) {
+    if (!isValidQuery(query)) {
+      return failed(this).output("Invalid query provided.").build();
+    }
     try (Connection connection = dataSource.getConnection()) {
       try (Statement statement =
           connection.createStatement(TYPE_SCROLL_INSENSITIVE, CONCUR_READ_ONLY)) {
